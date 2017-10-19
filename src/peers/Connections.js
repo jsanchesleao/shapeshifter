@@ -1,8 +1,5 @@
 import Peer from 'peerjs'
 import randomstring from 'randomstring'
-import createHistory from 'history/createBrowserHistory'
-
-const history = createHistory()
 
 class Connections {
 
@@ -12,28 +9,21 @@ class Connections {
     this.opened = false
     this.id = null
     this.connections = []
-    this.callbacks = {
-      data: []
-    }
   }
 
   _initializePeer() {
     this.id = randomstring.generate(5)
     this.peer = new Peer(this.id, {key: '86tco3u7cf03sor'})
-    this.peer.on('data', data => {
-      this.callbacks.data.forEach(fn => fn(data))
-    })
   }
 
   startHost() {
     this.host = true
     this._initializePeer()
-    this.peer.on('connection', this.onConnection.bind(this))
+    this.peer.on('connection', this._onConnection.bind(this))
   }
 
-  onConnection(conn) {
+  _onConnection(conn) {
     this.connections.push({id: conn.id, conn: conn})
-    console.log(this.connections)
     conn.on('data', data => {
       console.log(conn, 'data', data)
     })
@@ -43,13 +33,15 @@ class Connections {
     this.host = false
     this._initializePeer()
     this.peer.connect(id)
-    this.peer.on('open', this.onOpen.bind(this))
+    this.peer.on('open', this._onOpen.bind(this))
   }
 
-  onOpen() {
+  sendToHost(action) {
+    this.peer.send({action: action})
+  }
+
+  _onOpen() {
     this.opened = true
-    console.log('Opened connection')
-    history.push('/lobby', {})
   }
 
   getId() {
@@ -60,8 +52,8 @@ class Connections {
     return this.host
   }
 
-  on(event, fn) {
-    this.callbacks[event].push(fn)
+  getGuestConnections() {
+    return this.connections || [];
   }
 
 }

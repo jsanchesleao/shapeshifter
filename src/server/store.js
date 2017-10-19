@@ -1,6 +1,16 @@
-import {createStore} from 'redux'
-import {serverReducer} from './serverReducer'
+import {createStore, combineReducers} from 'redux'
+import * as game from './gameServerReducer'
+import * as users from './usersReducer'
 
-const store = createStore(serverReducer)
+
+const initialState = {
+  game: game.initialState,
+  users: users.initialState
+}
+
+const store = createStore(combineReducers({
+  game: game.reducer,
+  users: users.reducer
+}))
 
 export default store
